@@ -31,7 +31,15 @@
 #include <vector>
 using namespace std;
 
+#if HIP_ENABLED
+#include <hip/hip_runtime.h>
+#define cudaError_t hipError_t
+#define cudaSuccess hipSuccess
+#define cudaMemcpy hipMemcpy
+#define cudaGetLastError hipGetLastError
+#else
 #include <cuda_runtime.h>
+#endif
 
 #include "CuTexImage.h"
 #include "GlobalUtil.h"

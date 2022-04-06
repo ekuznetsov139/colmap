@@ -32,7 +32,7 @@
 #ifndef COLMAP_SRC_MVS_CUDA_FLIP_H_
 #define COLMAP_SRC_MVS_CUDA_FLIP_H_
 
-#include <cuda_runtime.h>
+#include "hip_defines.h"
 
 namespace colmap {
 namespace mvs {
@@ -47,7 +47,7 @@ void CudaFlipHorizontal(const T* input, T* output, const int width,
 // Implementation
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifdef __CUDACC__
+#if defined(__CUDACC__) || __HIP__
 
 // TILE_DIM_FLIP must divide by BLOCK_ROWS. Do not change these values.
 #define TILE_DIM_FLIP 32
@@ -64,8 +64,8 @@ __global__ void CudaFlipHorizontalKernel(T* output_data, const T* input_data,
   const int y_index = blockIdx.y * TILE_DIM_FLIP + threadIdx.y;
 
   __shared__ T tile[TILE_DIM_FLIP][TILE_DIM_FLIP + 1];
-  const int tile_x = min(threadIdx.x, width - 1 - blockIdx.x * TILE_DIM_FLIP);
-  const int tile_y = min(threadIdx.y, height - 1 - blockIdx.y * TILE_DIM_FLIP);
+  const int tile_x = min((int)threadIdx.x, (int)(width - 1 - blockIdx.x * TILE_DIM_FLIP));
+  const int tile_y = min((int)threadIdx.y, (int)(height - 1 - blockIdx.y * TILE_DIM_FLIP));
 
   for (int i = 0; i < TILE_DIM_FLIP; i += BLOCK_ROWS_FLIP) {
     const int x = min(x_index, width - 1);

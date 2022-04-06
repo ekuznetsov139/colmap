@@ -32,7 +32,6 @@
 set(FOLDER_NAME "mvs")
 
 COLMAP_ADD_SOURCES(
-    consistency_graph.h consistency_graph.cc
     depth_map.h depth_map.cc
     fusion.h fusion.cc
     image.h image.cc
@@ -47,7 +46,16 @@ COLMAP_ADD_TEST(depth_map_test depth_map_test.cc)
 COLMAP_ADD_TEST(mat_test mat_test.cc)
 COLMAP_ADD_TEST(normal_map_test normal_map_test.cc)
 
-if(CUDA_ENABLED)
+if(HIP_ENABLED)
+    set(MVS_GPU_SOURCES
+        consistency_graph.h consistency_graph.cc
+        gpu_mat_prng.h gpu_mat_prng.cu
+        gpu_mat_ref_image.h gpu_mat_ref_image.cu
+        patch_match.h patch_match.cc
+        patch_match_cuda.h patch_match_cuda.cu
+    )
+    hip_add_library(mvs_gpu ${MVS_GPU_SOURCES})
+elseif(CUDA_ENABLED)
     COLMAP_ADD_CUDA_SOURCES(
         gpu_mat_prng.h gpu_mat_prng.cu
         gpu_mat_ref_image.h gpu_mat_ref_image.cu
@@ -56,4 +64,6 @@ if(CUDA_ENABLED)
     )
 
     COLMAP_ADD_CUDA_TEST(gpu_mat_test gpu_mat_test.cu)
+else()
+COLMAP_ADD_SOURCES(consistency_graph.h consistency_graph.cc)
 endif()

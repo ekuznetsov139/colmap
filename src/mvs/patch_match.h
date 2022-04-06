@@ -246,7 +246,7 @@ class PatchMatch {
 // images. Note that all specified images must be reconstructed in the COLMAP
 // reconstruction provided in the `sparse` folder.
 
-#ifndef __CUDACC__
+//#ifndef __CUDACC__
 
 class PatchMatchController : public Thread {
  public:
@@ -278,7 +278,7 @@ class PatchMatchController : public Thread {
   std::vector<std::pair<float, float>> depth_ranges_;
 };
 
-#endif
+//#endif
 
 }  // namespace mvs
 }  // namespace colmap

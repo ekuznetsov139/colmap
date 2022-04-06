@@ -33,8 +33,7 @@
 #define COLMAP_SRC_UTIL_CUDACC_H_
 
 #include <string>
-
-#include <cuda_runtime.h>
+#include "hip_defines.h"
 
 #define CUDA_SAFE_CALL(error) CudaSafeCall(error, __FILE__, __LINE__)
 #define CUDA_CHECK() CudaCheck(__FILE__, __LINE__)

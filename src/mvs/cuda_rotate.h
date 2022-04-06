@@ -32,7 +32,7 @@
 #ifndef COLMAP_SRC_MVS_CUDA_ROTATE_H_
 #define COLMAP_SRC_MVS_CUDA_ROTATE_H_
 
-#include <cuda_runtime.h>
+#include "hip_defines.h"
 
 namespace colmap {
 namespace mvs {
@@ -46,7 +46,7 @@ void CudaRotate(const T* input, T* output, const int width, const int height,
 // Implementation
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifdef __CUDACC__
+#if defined(__CUDACC__) || __HIP__
 
 #define TILE_DIM_ROTATE 32
 

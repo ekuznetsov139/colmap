@@ -31,6 +31,12 @@
 
 set(FOLDER_NAME "util")
 
+
+if(HIP_ENABLED)
+    message(STATUS "HIP_ENABLED for utils")
+    add_definitions("-DHIP_ENABLED=1")
+endif()
+
 COLMAP_ADD_SOURCES(
     alignment.h
     bitmap.h bitmap.cc
@@ -51,14 +57,9 @@ COLMAP_ADD_SOURCES(
     testing.h
     types.h
     version.h version.cc
+    cuda.h cuda.cc
+    cudacc.h cudacc.cc
 )
-
-if(CUDA_ENABLED)
-    COLMAP_ADD_CUDA_SOURCES(
-        cuda.h cuda.cc
-        cudacc.h cudacc.cc
-    )
-endif()
 
 COLMAP_ADD_TEST(bitmap_test bitmap_test.cc)
 COLMAP_ADD_TEST(cache_test cache_test.cc)

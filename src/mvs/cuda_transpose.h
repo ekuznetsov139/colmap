@@ -32,7 +32,7 @@
 #ifndef COLMAP_SRC_MVS_CUDA_TRANSPOSE_H_
 #define COLMAP_SRC_MVS_CUDA_TRANSPOSE_H_
 
-#include <cuda_runtime.h>
+#include "hip_defines.h"
 
 namespace colmap {
 namespace mvs {
@@ -46,7 +46,7 @@ void CudaTranspose(const T* input, T* output, const int width, const int height,
 // Implementation
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifdef __CUDACC__
+#if defined(__CUDACC__) || __HIP__
 
 // TILE_DIM_TRANSPOSE must divide by BLOCK_ROWS. Do not change these values.
 #define TILE_DIM_TRANSPOSE 32
@@ -64,9 +64,9 @@ __global__ void CudaTransposeKernel(T* output_data, const T* input_data,
 
   __shared__ T tile[TILE_DIM_TRANSPOSE][TILE_DIM_TRANSPOSE + 1];
   const int tile_x =
-      min(threadIdx.x, width - 1 - blockIdx.x * TILE_DIM_TRANSPOSE);
+      min((int)threadIdx.x, (int)(width - 1 - blockIdx.x * TILE_DIM_TRANSPOSE));
   const int tile_y =
-      min(threadIdx.y, height - 1 - blockIdx.y * TILE_DIM_TRANSPOSE);
+      min((int)threadIdx.y, (int)(height - 1 - blockIdx.y * TILE_DIM_TRANSPOSE));
 
   for (int i = 0; i < TILE_DIM_TRANSPOSE; i += BLOCK_ROWS_TRANSPOSE) {
     const int x = min(x_index, width - 1);

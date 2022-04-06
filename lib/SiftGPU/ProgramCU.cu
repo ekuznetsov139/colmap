@@ -19,7 +19,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////
 
-#if defined(CUDA_SIFTGPU_ENABLED)
+//#if defined(CUDA_SIFTGPU_ENABLED)
 
 #include "GL/glew.h"
 #include "stdio.h"
@@ -28,6 +28,36 @@
 #include "ProgramCU.h"
 #include "GlobalUtil.h"
 
+#if __HIP__
+#include <hip/hip_runtime.h>
+#define cudaReadModeElementType hipReadModeElementType
+#define cudaReadModeNormalizedFloat hipReadModeNormalizedFloat
+#define cudaSuccess hipSuccess
+#define cudaDeviceProp hipDeviceProp_t
+#define cudaSetDevice hipSetDevice
+#define cudaGetDevice hipGetDevice
+#define cudaGetDeviceCount hipGetDeviceCount
+#define cudaBindTexture2D hipBindTexture2D
+#define cudaGetDeviceProperties hipGetDeviceProperties
+#define cudaMalloc hipMalloc
+#define cudaFree hipFree
+#define cudaError_t hipError_t
+#define cudaSuccess hipSuccess
+#define cudaGetLastError hipGetLastError
+#define cudaArray hipArray
+#define cudaMemcpy2DToArray hipMemcpy2DToArray
+#define cudaGetErrorString hipGetErrorString
+#define cudaBindTexture hipBindTexture
+#define cudaThreadSynchronize hipDeviceSynchronize
+#define cudaFreeArray hipFreeArray
+#define cudaMemcpyDeviceToDevice hipMemcpyDeviceToDevice
+#define cudaMemcpyHostToDevice hipMemcpyHostToDevice
+#define cudaMemcpyDeviceToHost hipMemcpyDeviceToHost
+#define cudaMemcpy hipMemcpy
+#define cudaStream_t hipStream_t
+#define cudaMemcpyAsync hipMemcpyAsync
+#define cudaMemcpyToSymbol hipMemcpyToSymbol
+#endif
 //----------------------------------------------------------------
 //Begin SiftGPU setting section.
 //////////////////////////////////////////////////////////
@@ -1213,6 +1243,10 @@ int ProgramCU::CheckErrorCUDA(const char* location)
     }
 }
 
+#if __HIP__
+__device__ float saturate(float x) { return x<0 ? 0 : (x>1 ? 1 : 0); }
+#endif
+
 void __global__ ConvertDOG_Kernel(float* d_result, int width, int height)
 {
 	int row = (blockIdx.y << BLOCK_LOG_DIM) + threadIdx.y;
@@ -1795,4 +1829,4 @@ void ProgramCU::GetColMatch(CuTexImage* texCRT, CuTexImage* texMatch, float dist
 	ColMatch_Kernel<<<grid, block>>>((int3*)texCRT->_cuData, (int*) texMatch->_cuData, height, num2, distmax, ratiomax);
 }
 
-#endif
+//#endif

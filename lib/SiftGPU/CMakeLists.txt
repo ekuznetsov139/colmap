@@ -42,7 +42,27 @@ if(CUDA_ENABLED)
     )
 
     COLMAP_ADD_STATIC_CUDA_LIBRARY(sift_gpu ${SIFT_GPU_SOURCE_FILES})
-else()
+endif()
+
+if(HIP_ENABLED)
+    add_definitions("-DCUDA_SIFTGPU_ENABLED -DHIP_ENABLED")
+    set(ROCM_HOST_COMPILER ${CMAKE_CXX_COMPILER})
+    set(SIFT_GPU_SOURCE_FILES
+        ${SIFT_GPU_SOURCE_FILES}
+        CuTexImage.cpp
+        CuTexImage.h
+        ProgramCU.cu
+        ProgramCU.h
+        PyramidCU.cpp
+        PyramidCU.h
+        SiftMatchCU.cpp
+        SiftMatchCU.h
+    )
+    hip_add_library(sift_gpu ${SIFT_GPU_SOURCE_FILES})
+    #COLMAP_ADD_STATIC_HIP_LIBRARY(sift_gpu ${SIFT_GPU_SOURCE_FILES})
+endif()
+
+if(NOT (CUDA_ENABLED OR HIP_ENABLED))
     COLMAP_ADD_STATIC_LIBRARY(sift_gpu ${SIFT_GPU_SOURCE_FILES})
 endif()
 

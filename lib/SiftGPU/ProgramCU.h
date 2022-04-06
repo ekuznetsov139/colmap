@@ -22,7 +22,7 @@
 
 #ifndef _PROGRAM_CU_H
 #define _PROGRAM_CU_H
-#if defined(CUDA_SIFTGPU_ENABLED)
+//#if defined(CUDA_SIFTGPU_ENABLED)
 
 class CuTexImage;
 
@@ -69,6 +69,6 @@ public:
 	static void GetColMatch(CuTexImage* texCRT, CuTexImage* texMatch, float distmax, float ratiomax);
 };
 
-#endif
+//#endif
 #endif
 

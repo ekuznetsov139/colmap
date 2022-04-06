@@ -32,6 +32,19 @@
 #include "util/cudacc.h"
 
 #include "util/logging.h"
+#if HIP_ENABLED
+#define cudaEventCreate hipEventCreate
+#define cudaEventRecord hipEventRecord
+#define cudaEventDestroy hipEventDestroy
+#define cudaEventElapsedTime hipEventElapsedTime
+#define cudaEventSynchronize hipEventSynchronize
+#define cudaStreamSynchronize hipStreamSynchronize
+#define cudaGetLastError hipGetLastError
+#define cudaGetErrorString hipGetErrorString
+#define cudaError hipError_t
+#define cudaSuccess hipSuccess
+#define cudaChooseDevice hipChooseDevice
+#endif
 
 namespace colmap {
 

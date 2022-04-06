@@ -29,19 +29,34 @@
 #include <math.h>
 using namespace std;
 
-
+#if HIP_ENABLED
+#include <hip/hip_runtime.h>
+#define cudaMalloc hipMalloc
+#define cudaFree hipFree
+#define cudaError_t hipError_t
+#define cudaSuccess hipSuccess
+#define cudaArray hipArray
+#define cudaMemcpy2DToArray hipMemcpy2DToArray
+#define cudaFreeArray hipFreeArray
+#define cudaMemcpyDeviceToDevice hipMemcpyDeviceToDevice
+#define cudaMemcpyHostToDevice hipMemcpyHostToDevice
+#define cudaMemcpyDeviceToHost hipMemcpyDeviceToHost
+#define cudaMemcpy hipMemcpy
+#define cudaStream_t hipStream_t
+#define cudaMemcpyAsync hipMemcpyAsync
+#else
 #include <cuda.h>
 #include <cuda_runtime_api.h>
 #include <cuda_gl_interop.h>
-
+#if CUDA_VERSION <= 2010 && defined(SIFTGPU_ENABLE_LINEAR_TEX2D)
+#error "Require CUDA 2.2 or higher"
+#endif
+#endif
 #include "GlobalUtil.h"
 #include "GLTexImage.h"
 #include "CuTexImage.h"
 #include "ProgramCU.h"
 
-#if CUDA_VERSION <= 2010 && defined(SIFTGPU_ENABLE_LINEAR_TEX2D)
-#error "Require CUDA 2.2 or higher"
-#endif
 
 
 CuTexImage::CuTexImage()
@@ -59,6 +74,7 @@ CuTexImage::CuTexImage(int width, int height, int nchannel, GLuint pbo)
 
 	//check size of pbo
 	GLint bsize, esize = width * height * nchannel * sizeof(float);
+#if !(HIP_ENABLED)
 	glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, pbo);
 	glGetBufferParameteriv(GL_PIXEL_PACK_BUFFER_ARB, GL_BUFFER_SIZE, &bsize);
 	if(bsize < esize)
@@ -75,6 +91,7 @@ CuTexImage::CuTexImage(int width, int height, int nchannel, GLuint pbo)
 		ProgramCU::CheckErrorCUDA("cudaGLMapBufferObject");
 		_fromPBO = pbo;
 	}else
+#endif
 	{
 		_cuData = NULL;
 		_fromPBO = 0;
@@ -101,12 +118,14 @@ CuTexImage::CuTexImage(int width, int height, int nchannel, GLuint pbo)
 CuTexImage::~CuTexImage()
 {
 
-
+#if !(HIP_ENABLED)
 	if(_fromPBO)
 	{
 		cudaGLUnmapBufferObject(_fromPBO);
 		cudaGLUnregisterBufferObject(_fromPBO);
-	}else if(_cuData)
+	}else
+#endif	
+	if(_cuData)
 	{
 		cudaFree(_cuData);
 	}
@@ -236,6 +255,10 @@ int CuTexImage::DebugCopyToTexture2D()
 
 void CuTexImage::CopyFromPBO(int width, int height, GLuint pbo)
 {
+#if HIP_ENABLED
+	printf("HIP/GL interop not enabled!\n");
+	exit(0);
+#else
 	void* pbuf =NULL;
 	GLint esize = width * height * sizeof(float);
 	cudaGLRegisterBufferObject(pbo);
@@ -245,10 +268,15 @@ void CuTexImage::CopyFromPBO(int width, int height, GLuint pbo)
 
 	cudaGLUnmapBufferObject(pbo);
 	cudaGLUnregisterBufferObject(pbo);
+#endif	
 }
 
 int CuTexImage::CopyToPBO(GLuint pbo)
 {
+#if HIP_ENABLED
+	printf("HIP/GL interop not enabled!\n");
+	exit(0);
+#else
 	void* pbuf =NULL;
 	GLint bsize, esize = _imgWidth * _imgHeight * sizeof(float) * _numChannel;
 	glBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, pbo);
@@ -272,6 +300,7 @@ int CuTexImage::CopyToPBO(GLuint pbo)
 	{
 		return 0;
 	}
+#endif	
 }
 
 #endif

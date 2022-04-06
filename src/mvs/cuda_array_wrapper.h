@@ -34,7 +34,7 @@
 
 #include <memory>
 
-#include <cuda_runtime.h>
+#include "hip_defines.h"
 
 #include "mvs/gpu_mat.h"
 #include "util/cudacc.h"

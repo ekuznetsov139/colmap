@@ -36,7 +36,7 @@
 #include <memory>
 #include <vector>
 
-#include <cuda_runtime.h>
+#include "hip_defines.h"
 
 #include "mvs/cuda_array_wrapper.h"
 #include "mvs/depth_map.h"

@@ -58,7 +58,8 @@ option(SIMD_ENABLED "Whether to enable SIMD optimizations" ON)
 option(OPENMP_ENABLED "Whether to enable OpenMP parallelization" ON)
 option(IPO_ENABLED "Whether to enable interprocedural optimization" ON)
 option(CUDA_ENABLED "Whether to enable CUDA, if available" ON)
-option(GUI_ENABLED "Whether to enable the graphical UI" ON)
+option(GUI_ENABLED "Whether to enable the graphical UI" OFF)
+option(HIP_ENABLED "Whether to enable CUDA, if available" ON)
 option(OPENGL_ENABLED "Whether to enable OpenGL, if available" ON)
 option(TESTS_ENABLED "Whether to build test binaries" OFF)
 option(ASAN_ENABLED "Whether to enable AddressSanitizer flags" OFF)
@@ -117,6 +118,11 @@ endif()
 set(CUDA_MIN_VERSION "7.0")
 if(CUDA_ENABLED)
     find_package(CUDA ${CUDA_MIN_VERSION} QUIET)
+endif()
+
+if(HIP_ENABLED)
+   find_package(ROCM REQUIRED)
+   find_package(HIP REQUIRED)
 endif()
 
 if(GUI_ENABLED)
@@ -243,6 +249,27 @@ else()
     endif()
 endif()
 
+
+if(HIP_ENABLED)
+    set(CMAKE_MODULE_PATH "${HIP_PATH}/cmake" ${CMAKE_MODULE_PATH})
+    list(APPEND CMAKE_PREFIX_PATH
+      "${HIP_PATH}/lib/cmake"
+      "${HIP_PATH}/../lib/cmake" # hopefully catches all extra HIP dependencies
+    )
+    include("/opt/rocm/hip/cmake/FindHIP.cmake")
+    #include(cmake/Hip.cmake)
+    #include(cmake/Hipify.cmake)
+    add_definitions("-DCUDA_ENABLED -DHIP_ENABLED=1")
+    include_directories(SYSTEM ${ROCM_INCLUDE_DIRS})
+    list(APPEND LINKER_LIBS ${ROCM_LIBRARIES} ${HIP_LIBRARIES} /opt/rocm/rocrand/include)
+    set(CMAKE_CXX_FLAGS_RELEASE "${ROCM_COMPILE_FLAGS} ${CMAKE_CXX_FLAGS} -I/opt/rocm/hip/include -I/opt/rocm/include -I/opt/rocm/hiprand/include -D__HIP_PLATFORM_AMD__ -D__HIP_PLATFORM_HCC__")
+    list(APPEND HIP_HIPCC_FLAGS -D_GLIBCXX_USE_CXX11_ABI=1 -fPIC -I/opt/rocm/hiprand/include)
+    message(STATUS "Enabling HIP support")
+else()
+    set(HIP_ENABLED OFF)
+    message(STATUS "Disabling HIP support")
+endif()
+
 if(GUI_ENABLED AND Qt5_FOUND)
     add_definitions("-DGUI_ENABLED")
     message(STATUS "Enabling GUI support")
@@ -332,6 +359,11 @@ set(COLMAP_EXTERNAL_LIBRARIES
     ${OPENGL_LIBRARIES}
 )
 
+if(HIP_ENABLED)
+    list(APPEND COLMAP_LINK_DIRS /opt/rocm/hip/lib)
+    list(APPEND COLMAP_EXTERNAL_LIBRARIES amdhip64)
+endif()
+
 if(OPENMP_FOUND)
     list(APPEND COLMAP_EXTERNAL_LIBRARIES ${OpenMP_libomp_LIBRARY})
 endif()
@@ -360,6 +392,10 @@ set(COLMAP_INTERNAL_LIBRARIES
     sift_gpu
     vlfeat
 )
+
+if(HIP_ENABLED)
+    set(COLMAP_INTERNAL_LIBRARIES ${COLMAP_INTERNAL_LIBRARIES} mvs_gpu)
+endif()
 
 include_directories(
     lib

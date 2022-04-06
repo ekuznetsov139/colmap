@@ -35,10 +35,24 @@
 #include <iostream>
 #include <vector>
 
+#if HIP_ENABLED
+#include <hip/hip_runtime.h>
+#else
 #include <cuda_runtime.h>
+#endif
 
 #include "util/cudacc.h"
 #include "util/logging.h"
+
+#if HIP_ENABLED
+#define cudaGetDeviceCount hipGetDeviceCount
+#define cudaGetDeviceProperties hipGetDeviceProperties
+#define cudaSetDevice hipSetDevice
+#define cudaDeviceProp hipDeviceProp_t
+#define cudaError hipError_t
+#define cudaSuccess hipSuccess
+#define cudaChooseDevice hipChooseDevice
+#endif
 
 namespace colmap {
 namespace {
